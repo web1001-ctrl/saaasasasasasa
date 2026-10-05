@@ -1,0 +1,998 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+  <meta charset="UTF-8">
+
+  <meta
+    name="viewport"
+    content="width=device-width,
+    initial-scale=1.0,
+    maximum-scale=1.0,
+    user-scalable=no"
+  >
+
+  <title>Last Finger</title>
+
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      user-select: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      touch-action: none;
+    }
+
+    body {
+      font-family: Arial, sans-serif;
+      color: white;
+
+      background:
+        radial-gradient(
+          circle at center,
+          #1c2850 0%,
+          #090d1d 45%,
+          #02030a 100%
+        );
+    }
+
+    #game {
+      width: 100%;
+      height: 100dvh;
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* LOGO */
+
+    .logo {
+      position: absolute;
+      top: 25px;
+      width: 100%;
+      text-align: center;
+
+      font-size: 27px;
+      font-weight: 900;
+      letter-spacing: 5px;
+
+      z-index: 20;
+
+      text-shadow:
+        0 0 15px rgba(255,255,255,.4);
+    }
+
+    #info {
+      position: absolute;
+      top: 65px;
+      width: 100%;
+      text-align: center;
+
+      font-size: 13px;
+      color: #9ba7cf;
+
+      z-index: 20;
+    }
+
+    /* ARENA */
+
+    #arena {
+      position: absolute;
+      inset: 0;
+
+      width: 100%;
+      height: 100%;
+
+      touch-action: none;
+    }
+
+    /* FINGER */
+
+    .finger {
+      position: absolute;
+
+      width: 78px;
+      height: 78px;
+
+      border-radius: 50%;
+
+      transform:
+        translate(-50%, -50%)
+        scale(1);
+
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+      font-size: 25px;
+      font-weight: 900;
+
+      color: white;
+
+      background:
+        radial-gradient(
+          circle at 30% 25%,
+          #ffffff,
+          #7595ff 18%,
+          #3d5de0 50%,
+          #18227d 100%
+        );
+
+      border: 3px solid white;
+
+      box-shadow:
+        0 0 15px #5878ff,
+        0 0 40px rgba(75,105,255,.6);
+
+      pointer-events: none;
+
+      transition:
+        opacity .25s ease,
+        filter .25s ease;
+    }
+
+    /* RANDOM */
+
+    .finger.active {
+      animation:
+        randomPulse .16s infinite alternate;
+
+      box-shadow:
+        0 0 20px white,
+        0 0 50px #6284ff,
+        0 0 90px #3555ff;
+    }
+
+    @keyframes randomPulse {
+
+      from {
+        transform:
+          translate(-50%, -50%)
+          scale(1.15);
+      }
+
+      to {
+        transform:
+          translate(-50%, -50%)
+          scale(1.55);
+      }
+
+    }
+
+    /* LOSER */
+
+    .finger.loser {
+      background:
+        radial-gradient(
+          circle at 30% 25%,
+          white,
+          #ff8d8d 15%,
+          #ff2929 45%,
+          #750000 100%
+        );
+
+      border-color: white;
+
+      animation:
+        loserAnimation .1s infinite alternate;
+
+      box-shadow:
+        0 0 25px #ff0000,
+        0 0 60px #ff2020,
+        0 0 120px rgba(255,0,0,.9);
+
+      z-index: 50;
+    }
+
+    @keyframes loserAnimation {
+
+      from {
+        transform:
+          translate(-53%, -50%)
+          scale(1.5)
+          rotate(-5deg);
+      }
+
+      to {
+        transform:
+          translate(-47%, -50%)
+          scale(1.8)
+          rotate(5deg);
+      }
+
+    }
+
+    .finger.hidden {
+      opacity: 0;
+      filter: blur(12px);
+
+      transform:
+        translate(-50%, -50%)
+        scale(.1);
+    }
+
+    /* START */
+
+    #start {
+      position: absolute;
+
+      bottom: 55px;
+      left: 50%;
+
+      transform: translateX(-50%);
+
+      width: 220px;
+      height: 65px;
+
+      border: none;
+      border-radius: 20px;
+
+      color: white;
+
+      font-size: 20px;
+      font-weight: 900;
+
+      letter-spacing: 3px;
+
+      background:
+        linear-gradient(
+          135deg,
+          #5577ff,
+          #773cff
+        );
+
+      box-shadow:
+        0 10px 35px rgba(70,80,255,.5),
+        inset 0 1px 1px rgba(255,255,255,.4);
+
+      z-index: 100;
+
+      transition:
+        transform .15s,
+        opacity .3s;
+    }
+
+    #start:active {
+      transform:
+        translateX(-50%)
+        scale(.92);
+    }
+
+    #start.hide {
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    /* RESULT */
+
+    #result {
+      position: absolute;
+      inset: 0;
+
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+      background: rgba(0,0,0,.72);
+      backdrop-filter: blur(10px);
+
+      opacity: 0;
+      pointer-events: none;
+
+      transition: opacity .4s;
+
+      z-index: 200;
+    }
+
+    #result.show {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .resultBox {
+      width: 85%;
+      max-width: 380px;
+
+      padding: 35px 25px;
+
+      border-radius: 28px;
+
+      text-align: center;
+
+      background:
+        linear-gradient(
+          145deg,
+          #1b2140,
+          #090c19
+        );
+
+      border: 1px solid rgba(255,255,255,.12);
+
+      box-shadow:
+        0 30px 100px rgba(0,0,0,.8);
+    }
+
+    .resultTitle {
+      color: #a8b1d2;
+
+      font-size: 13px;
+      letter-spacing: 3px;
+
+      margin-bottom: 12px;
+    }
+
+    #winner {
+      font-size: 38px;
+      font-weight: 1000;
+
+      color: #ff3b3b;
+
+      margin-bottom: 25px;
+
+      text-shadow:
+        0 0 25px rgba(255,0,0,.7);
+    }
+
+    #again {
+      width: 100%;
+      height: 58px;
+
+      border: none;
+      border-radius: 16px;
+
+      color: white;
+
+      font-size: 17px;
+      font-weight: 900;
+
+      background:
+        linear-gradient(
+          135deg,
+          #5577ff,
+          #773cff
+        );
+    }
+  </style>
+</head>
+
+<body>
+
+<div id="game">
+
+  <div class="logo">
+    LAST FINGER
+  </div>
+
+  <div id="info">
+    1–8 players
+  </div>
+
+  <div id="arena"></div>
+
+  <button id="start">
+    START
+  </button>
+
+  <div id="result">
+
+    <div class="resultBox">
+
+      <div class="resultTitle">
+        THE LOSER IS
+      </div>
+
+      <div id="winner">
+        PLAYER 1
+      </div>
+
+      <button id="again">
+        PLAY AGAIN
+      </button>
+
+    </div>
+
+  </div>
+
+</div>
+
+
+<script>
+
+  const arena =
+    document.getElementById("arena");
+
+  const start =
+    document.getElementById("start");
+
+  const result =
+    document.getElementById("result");
+
+  const winner =
+    document.getElementById("winner");
+
+  const again =
+    document.getElementById("again");
+
+
+  const MAX_PLAYERS = 8;
+
+  let players = new Map();
+
+  let playerNumber = 0;
+
+  let gameStarted = false;
+
+  let audio = null;
+
+  let randomTimer = null;
+
+  let selected = null;
+
+
+  /* =========================
+       AUDIO
+  ========================= */
+
+  function initAudio() {
+
+    if (!audio) {
+
+      audio =
+        new (
+          window.AudioContext ||
+          window.webkitAudioContext
+        )();
+
+    }
+
+    if (audio.state === "suspended") {
+      audio.resume();
+    }
+
+  }
+
+
+  function sound(
+    frequency,
+    duration,
+    volume,
+    type = "sine"
+  ) {
+
+    if (!audio) return;
+
+    const oscillator =
+      audio.createOscillator();
+
+    const gain =
+      audio.createGain();
+
+    oscillator.type = type;
+
+    oscillator.frequency.value =
+      frequency;
+
+    gain.gain.setValueAtTime(
+      volume,
+      audio.currentTime
+    );
+
+    gain.gain.exponentialRampToValueAtTime(
+      0.001,
+      audio.currentTime + duration
+    );
+
+    oscillator.connect(gain);
+    gain.connect(audio.destination);
+
+    oscillator.start();
+
+    oscillator.stop(
+      audio.currentTime + duration
+    );
+
+  }
+
+
+  /* =========================
+       PLACE FINGER
+  ========================= */
+
+  arena.addEventListener(
+    "pointerdown",
+    function(e) {
+
+      e.preventDefault();
+
+      if (gameStarted) return;
+
+      if (players.size >= MAX_PLAYERS) {
+        return;
+      }
+
+      if (players.has(e.pointerId)) {
+        return;
+      }
+
+
+      const finger =
+        document.createElement("div");
+
+      finger.className = "finger";
+
+      const number =
+        ++playerNumber;
+
+      finger.textContent =
+        number;
+
+      finger.style.left =
+        e.clientX + "px";
+
+      finger.style.top =
+        e.clientY + "px";
+
+
+      arena.appendChild(finger);
+
+
+      players.set(
+        e.pointerId,
+        {
+          id: e.pointerId,
+          number: number,
+          element: finger
+        }
+      );
+
+
+      /*
+        Finger paydo bo'lish ovozi
+      */
+
+      sound(
+        500,
+        .08,
+        .045
+      );
+
+    },
+    { passive: false }
+  );
+
+
+  /* =========================
+       MOVE FINGER
+  ========================= */
+
+  arena.addEventListener(
+    "pointermove",
+    function(e) {
+
+      if (gameStarted) return;
+
+      const player =
+        players.get(e.pointerId);
+
+      if (!player) return;
+
+
+      player.element.style.left =
+        e.clientX + "px";
+
+      player.element.style.top =
+        e.clientY + "px";
+
+    }
+  );
+
+
+  /* =========================
+       REMOVE FINGER
+  ========================= */
+
+  arena.addEventListener(
+    "pointerup",
+    function(e) {
+
+      if (gameStarted) return;
+
+      const player =
+        players.get(e.pointerId);
+
+      if (!player) return;
+
+
+      player.element.remove();
+
+      players.delete(e.pointerId);
+
+    }
+  );
+
+
+  arena.addEventListener(
+    "pointercancel",
+    function(e) {
+
+      if (gameStarted) return;
+
+      const player =
+        players.get(e.pointerId);
+
+      if (!player) return;
+
+
+      player.element.remove();
+
+      players.delete(e.pointerId);
+
+    }
+  );
+
+
+  /* =========================
+       START
+  ========================= */
+
+  start.addEventListener(
+    "click",
+    function() {
+
+      initAudio();
+
+      if (gameStarted) return;
+
+      if (players.size === 0) {
+
+        /*
+          Agar hali barmoq yo'q bo'lsa
+        */
+
+        sound(
+          180,
+          .15,
+          .06
+        );
+
+        return;
+
+      }
+
+
+      gameStarted = true;
+
+      start.classList.add("hide");
+
+
+      /*
+        1.5 SEKUND KUTISH
+      */
+
+      sound(
+        650,
+        .08,
+        .04
+      );
+
+
+      setTimeout(
+        startRandom,
+        1500
+      );
+
+    }
+  );
+
+
+  /* =========================
+       RANDOM
+  ========================= */
+
+  function startRandom() {
+
+    const list =
+      Array.from(
+        players.values()
+      );
+
+
+    let round = 0;
+
+    let previous = null;
+
+
+    function next() {
+
+      list.forEach(
+        p =>
+          p.element.classList.remove(
+            "active"
+          )
+      );
+
+
+      let random;
+
+
+      do {
+
+        random =
+          list[
+            Math.floor(
+              Math.random() *
+              list.length
+            )
+          ];
+
+      } while (
+        list.length > 1 &&
+        random === previous
+      );
+
+
+      previous = random;
+
+      selected = random;
+
+
+      random.element.classList.add(
+        "active"
+      );
+
+
+      /*
+        RANDOM OVOZI
+      */
+
+      sound(
+        350 + Math.random() * 400,
+        .055,
+        .035,
+        "square"
+      );
+
+
+      round++;
+
+
+      /*
+        Aylanish asta-sekin tezlashadi
+      */
+
+      const speed =
+        Math.max(
+          45,
+          210 - round * 5
+        );
+
+
+      /*
+        40 marta aylangandan keyin
+        tugaydi
+      */
+
+      if (round >= 40) {
+
+        setTimeout(
+          finishGame,
+          550
+        );
+
+        return;
+
+      }
+
+
+      randomTimer =
+        setTimeout(
+          next,
+          speed
+        );
+
+    }
+
+
+    next();
+
+  }
+
+
+  /* =========================
+       FINISH
+  ========================= */
+
+  function finishGame() {
+
+    clearTimeout(
+      randomTimer
+    );
+
+
+    /*
+      Active animatsiyani olib tashlash
+    */
+
+    selected.element.classList.remove(
+      "active"
+    );
+
+
+    /*
+      Qolganlarni yo'qotish
+    */
+
+    players.forEach(
+      player => {
+
+        if (player !== selected) {
+
+          player.element.classList.add(
+            "hidden"
+          );
+
+        }
+
+      }
+    );
+
+
+    /*
+      QOLGAN BIRINCHI FINGER
+      QIZIL BO'LADI
+    */
+
+    selected.element.classList.add(
+      "loser"
+    );
+
+
+    /*
+      BALAND LOSER SOUND
+    */
+
+    setTimeout(
+      loserSound,
+      100
+    );
+
+
+    setTimeout(
+      function() {
+
+        winner.textContent =
+          "PLAYER " +
+          selected.number;
+
+        result.classList.add(
+          "show"
+        );
+
+      },
+      1000
+    );
+
+  }
+
+
+  /* =========================
+       LOSER SOUND
+  ========================= */
+
+  function loserSound() {
+
+    if (!audio) return;
+
+
+    /*
+      Kuchli boshlanish
+    */
+
+    sound(
+      700,
+      .15,
+      .14,
+      "sawtooth"
+    );
+
+
+    setTimeout(
+      function() {
+
+        sound(
+          450,
+          .18,
+          .14,
+          "sawtooth"
+        );
+
+      },
+      130
+    );
+
+
+    setTimeout(
+      function() {
+
+        sound(
+          180,
+          .5,
+          .18,
+          "sawtooth"
+        );
+
+      },
+      280
+    );
+
+  }
+
+
+  /* =========================
+       PLAY AGAIN
+  ========================= */
+
+  again.addEventListener(
+    "click",
+    function() {
+
+      clearTimeout(
+        randomTimer
+      );
+
+
+      players.forEach(
+        player => {
+
+          player.element.remove();
+
+        }
+      );
+
+
+      players.clear();
+
+
+      playerNumber = 0;
+
+      selected = null;
+
+      gameStarted = false;
+
+
+      result.classList.remove(
+        "show"
+      );
+
+
+      start.classList.remove(
+        "hide"
+      );
+
+    }
+  );
+
+
+  /* =========================
+       PREVENT MENU
+  ========================= */
+
+  document.addEventListener(
+    "contextmenu",
+    function(e) {
+
+      e.preventDefault();
+
+    }
+  );
+
+</script>
+
+</body>
+</html>
